@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Net;
+using Microsoft.Extensions.Configuration;
 using MyDownloader.Services;
 using Serilog;
 
@@ -72,7 +73,31 @@ class Program
     {
         _ = Task.Run(async () =>
         {
-            logger.Information("HTTP Server listening port 8080");
+            using var listener = new HttpListener();
+            listener.Prefixes.Add("http://*:8080/");
+        
+            try 
+            {
+                listener.Start();
+                logger.Information("HTTP Server started on port 8080");
+
+                while (true)
+                {
+                    var context = await listener.GetContextAsync();
+                    
+                    var response = context.Response;
+                    string responseString = "Bot is alive!";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                
+                    response.ContentLength64 = buffer.Length;
+                    await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                    response.OutputStream.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Fatal(ex, "HTTP Server crashed");
+            }
         });
     }
 }
