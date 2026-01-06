@@ -1,10 +1,10 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
-COPY *.csproj ./
+COPY MyDownloader/MyDownloader.csproj ./
 RUN dotnet restore
 
-COPY . ./
+COPY MyDownloader/ .
 
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
